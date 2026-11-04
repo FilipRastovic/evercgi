@@ -120,6 +120,7 @@ function Gallery() {
 function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [failed, setFailed] = useState(false)
   const mountedAt = useRef(Date.now())
 
   const handleSubmit = useCallback(async (e) => {
@@ -127,16 +128,26 @@ function Contact() {
     if (e.target.querySelector('input[name="website"]')?.value) return
     if (Date.now() - mountedAt.current < 2000) return
     setSubmitting(true)
+    setFailed(false)
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 15000)
     try {
-      await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+      const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
         method: 'POST',
         body: new FormData(e.target),
+        headers: { Accept: 'application/json' },
+        signal: ctrl.signal,
       })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data.success === false || data.success === 'false') throw new Error('send failed')
+      setSubmitted(true)
     } catch {
-      // formsubmit failures are silent for the visitor, same as before
+      // Never fake a "thank you": the visitor's message would be lost silently.
+      setFailed(true)
+    } finally {
+      clearTimeout(timer)
+      setSubmitting(false)
     }
-    setSubmitted(true)
-    setSubmitting(false)
   }, [])
 
   return (
@@ -175,7 +186,14 @@ function Contact() {
                 </label>
                 <div>
                   <button type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send'}</button>
-                  <p className="consent">We reply within 24 hours.</p>
+                  {failed ? (
+                    <p className="form-error">
+                      Sorry, the message couldn't be sent right now. Please email{' '}
+                      <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> directly.
+                    </p>
+                  ) : (
+                    <p className="consent">We reply within 24 hours.</p>
+                  )}
                 </div>
               </form>
             )}
