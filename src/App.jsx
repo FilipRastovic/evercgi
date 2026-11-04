@@ -30,9 +30,39 @@ function Header() {
   )
 }
 
+// Muted loop that only downloads/plays while on screen, so 9 videos don't all load at once.
+function LoopVideo({ item }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (!el.src) el.src = `/gallery/${item.src}.mp4`
+        el.play().catch(() => {})
+      } else {
+        el.pause()
+      }
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [item.src])
+  return (
+    <video
+      ref={ref}
+      poster={`/gallery/${item.src}-poster.webp`}
+      width={item.w}
+      height={item.h}
+      muted
+      loop
+      playsInline
+      preload="none"
+    />
+  )
+}
+
 function Gallery() {
   const [lightbox, setLightbox] = useState(null)
-  const [missing, setMissing] = useState(() => new Set())
 
   useEffect(() => {
     if (!lightbox) return
@@ -41,20 +71,25 @@ function Gallery() {
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox])
 
-  const images = GALLERY.filter((f) => !missing.has(f))
-
   return (
     <>
       <section id="top" className="gallery">
         <div className="gallery-masonry">
-          {images.map((file) => (
-            <div key={file} className="gallery-item" onClick={() => setLightbox(file)}>
-              <img
-                src={`/gallery/${file}`}
-                alt=""
-                loading="lazy"
-                onError={() => setMissing((m) => new Set(m).add(file))}
-              />
+          {GALLERY.map((item, i) => (
+            <div key={item.src} className="gallery-item" onClick={() => setLightbox(item)}>
+              {item.type === 'video' ? (
+                <LoopVideo item={item} />
+              ) : (
+                <img
+                  src={`/gallery/${item.src}-sm.webp`}
+                  width={item.w}
+                  height={item.h}
+                  alt=""
+                  loading={i < 6 ? 'eager' : 'lazy'}
+                  fetchpriority={i < 3 ? 'high' : undefined}
+                  decoding="async"
+                />
+              )}
             </div>
           ))}
         </div>
@@ -63,7 +98,19 @@ function Gallery() {
       {lightbox && (
         <div className="lightbox" onClick={() => setLightbox(null)}>
           <button className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>✕</button>
-          <img src={`/gallery/${lightbox}`} alt="" onClick={(e) => e.stopPropagation()} />
+          {lightbox.type === 'video' ? (
+            <video
+              src={`/gallery/${lightbox.src}.mp4`}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <img src={`/gallery/${lightbox.src}.webp`} alt="" onClick={(e) => e.stopPropagation()} />
+          )}
         </div>
       )}
     </>

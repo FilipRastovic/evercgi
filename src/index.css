@@ -63,7 +63,7 @@ body {
   background: #e5e7eb;
   cursor: zoom-in;
 }
-.gallery-item img { display: block; width: 100%; height: auto; }
+.gallery-item img, .gallery-item video { display: block; width: 100%; height: auto; }
 @media (max-width: 768px) {
   .gallery { padding: 10px; }
   .gallery-masonry { columns: 2; column-gap: 10px; }
@@ -80,7 +80,7 @@ body {
   z-index: 1000;
   cursor: zoom-out;
 }
-.lightbox img { max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; cursor: default; }
+.lightbox img, .lightbox video { max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; cursor: default; }
 .lightbox-close {
   position: absolute;
   top: 20px; right: 20px;
