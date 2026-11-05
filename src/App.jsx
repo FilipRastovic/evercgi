@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GALLERY } from './gallery.js'
 
 const CONTACT_EMAIL = 'markobokan88@gmail.com'
@@ -118,85 +118,17 @@ function Gallery() {
 }
 
 function Contact() {
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const mountedAt = useRef(Date.now())
-
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault()
-    if (e.target.querySelector('input[name="website"]')?.value) return
-    if (Date.now() - mountedAt.current < 2000) return
-    setSubmitting(true)
-    setFailed(false)
-    const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 15000)
-    try {
-      const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
-        method: 'POST',
-        body: new FormData(e.target),
-        headers: { Accept: 'application/json' },
-        signal: ctrl.signal,
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || data.success === false || data.success === 'false') throw new Error('send failed')
-      setSubmitted(true)
-    } catch {
-      // Never fake a "thank you": the visitor's message would be lost silently.
-      setFailed(true)
-    } finally {
-      clearTimeout(timer)
-      setSubmitting(false)
-    }
-  }, [])
-
   return (
     <section id="contact" className="contact">
       <div className="contact-inner">
         <h2>Contact</h2>
-        <p className="contact-sub">Reach out for business inquiries using the form below.</p>
+        <p className="contact-sub">Reach out for business inquiries by email.</p>
 
         <div className="contact-grid">
           <div className="contact-card">
-            <h3>Contact</h3>
-            <p className="contact-note">Write your message below</p>
-
-            {submitted ? (
-              <div className="contact-success">
-                <div className="tick">&#10003;</div>
-                <h4>Thank you!</h4>
-                <p>Your message has been sent. We'll get back to you shortly.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <input type="hidden" name="_subject" value="New enquiry from evercgi.com" />
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_template" value="table" />
-                <div className="hp" aria-hidden="true">
-                  <label htmlFor="hp-website">Website</label>
-                  <input type="text" id="hp-website" name="website" tabIndex={-1} autoComplete="off" />
-                </div>
-                <label>
-                  <span>Email</span>
-                  <input type="email" name="email" required />
-                </label>
-                <label>
-                  <span>Message</span>
-                  <textarea name="message" />
-                </label>
-                <div>
-                  <button type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send'}</button>
-                  {failed ? (
-                    <p className="form-error">
-                      Sorry, the message couldn't be sent right now. Please email{' '}
-                      <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> directly.
-                    </p>
-                  ) : (
-                    <p className="consent">We reply within 24 hours.</p>
-                  )}
-                </div>
-              </form>
-            )}
+            <h3>Email</h3>
+            <a className="contact-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+            <p className="consent">We reply within 24 hours.</p>
           </div>
 
           <div className="contact-info">
