@@ -24,7 +24,7 @@ const SOCIAL = [
 function Header() {
   return (
     <header className="header">
-      <a href="#top" className="brand">EVERCGI</a>
+      <a href="#top" className="brand">LIGHTVITY</a>
       <a href="#contact" className="header-cta">Contact</a>
     </header>
   )
@@ -160,7 +160,7 @@ export default function App() {
       <Header />
       <Gallery />
       <Contact />
-      <footer className="footer">© {new Date().getFullYear()} EVERCGI · Marko Bokan</footer>
+      <footer className="footer">© {new Date().getFullYear()} Lightvity · Marko Bokan</footer>
     </>
   )
 }
